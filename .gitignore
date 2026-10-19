@@ -1,14 +1,36 @@
+# Environment & Secrets
 .env
-node_modules
-dist
-build
-data
+.env.*
+!.env.example
 
-# Virtual environments
+# Virtual Environments
 venv/
 .venv/
 */venv/
 
-# Python cache & weights
+# Database & Runtime Data
+data/
+node_modules/
+dist/
+build/
+
+# IDE & Editor files
+.vscode/
+.idea/
+
+# Python Cache & Testing
 __pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Model Weights
 *.pt
+*.onnx
+*.engine
+
+# Snapshot Storage & Media
+snapshots/
+**/snapshots/
+*.jpg
+*.jpeg
+*.png

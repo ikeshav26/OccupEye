@@ -1,3 +1,6 @@
 opencv-python
 ultralytics
 numpy
+inference-sdk
+pytest
+python-dotenv
