@@ -1,0 +1,14 @@
+.env
+node_modules
+dist
+build
+data
+
+# Virtual environments
+venv/
+.venv/
+*/venv/
+
+# Python cache & weights
+__pycache__/
+*.pt
