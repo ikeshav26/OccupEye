@@ -31,4 +31,4 @@ FAN_STABILIZATION_COUNT = int(os.getenv("FAN_STABILIZATION_COUNT", 2))
 
 
 IDLE_TIME_THRESHOLD = int(os.getenv("IDLE_TIME_THRESHOLD", 10))
-SNAPSHOT_DIR = os.getenv("SNAPSHOT_DIR", "snapshots")
+SERVER_WEBHOOK_URL = os.getenv("SERVER_WEBHOOK_URL", "http://localhost:3000/api/alerts")

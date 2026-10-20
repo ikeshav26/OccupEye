@@ -4,3 +4,4 @@ numpy
 inference-sdk
 pytest
 python-dotenv
+requests

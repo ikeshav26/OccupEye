@@ -9,6 +9,10 @@ from typing import Optional
 import cv2
 import numpy as np
 
+import base64
+import threading
+import requests
+
 import config
 from detector import StudentDetector
 from fan_detector import FanTracker
@@ -17,26 +21,53 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(na
 logger = logging.getLogger("OccupEye.Main")
 
 
-def save_verification_snapshot(frame: np.ndarray, classroom_id: str, elapsed_seconds: int) -> str:
+def dispatch_alert_webhook(
+    frame: np.ndarray,
+    classroom_id: str,
+    elapsed_seconds: int,
+    student_count: int,
+    fan_status: str,
+) -> None:
+    """Encodes snapshot in-memory and dispatches alert payload to Express server asynchronously."""
     try:
-        os.makedirs(config.SNAPSHOT_DIR, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filepath = os.path.join(config.SNAPSHOT_DIR, f"snapshot_{classroom_id}_{timestamp}.jpg")
-
         snapshot = frame.copy()
         h, w = snapshot.shape[:2]
         cv2.rectangle(snapshot, (0, h - 40), (w, h), (0, 0, 180), -1)
 
         banner = (
-            f"OccupEye Alert | Room: {classroom_id} | Students: 0 | Fan: ON | "
+            f"OccupEye Alert | Room: {classroom_id} | Students: {student_count} | Fan: {fan_status} | "
             f"Idle: {elapsed_seconds}s | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         )
         cv2.putText(snapshot, banner, (10, h - 14), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.imwrite(filepath, snapshot)
-        return filepath
+
+
+        ret, buffer = cv2.imencode(".jpg", snapshot, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        if not ret:
+            logger.error("Failed to encode snapshot image")
+            return
+
+        image_b64 = base64.b64encode(buffer).decode("utf-8")
+        payload = {
+            "classroom_id": classroom_id,
+            "student_count": student_count,
+            "fan_status": fan_status,
+            "idle_seconds": elapsed_seconds,
+            "image_base64": f"data:image/jpeg;base64,{image_b64}",
+        }
+
+        def _send():
+            try:
+                res = requests.post(config.SERVER_WEBHOOK_URL, json=payload, timeout=6)
+                if res.status_code in (200, 201):
+                    logger.info(f"🚀 Alert webhook successfully delivered to server: {res.json().get('message')}")
+                else:
+                    logger.error(f"Failed to post alert webhook: {res.status_code} {res.text}")
+            except Exception as ex:
+                logger.error(f"Error dispatching alert webhook to {config.SERVER_WEBHOOK_URL}: {ex}")
+
+        threading.Thread(target=_send, daemon=True).start()
     except Exception as e:
-        logger.error(f"Failed to save verification snapshot: {e}")
-        return ""
+        logger.error(f"Failed to prepare alert webhook: {e}")
 
 
 def render_hud(
@@ -116,10 +147,16 @@ def main():
                 if elapsed_idle >= config.IDLE_TIME_THRESHOLD:
                     is_alert = True
                     if not alert_dispatched:
-                        snapshot = save_verification_snapshot(frame, config.CLASSROOM_ID, elapsed_idle)
+                        dispatch_alert_webhook(
+                            frame,
+                            config.CLASSROOM_ID,
+                            elapsed_idle,
+                            student_count,
+                            fan_status,
+                        )
                         logger.warning(
                             f"⚠️ [WARNING] Energy waste in '{config.CLASSROOM_ID}': "
-                            f"0 students & Fan ON for {elapsed_idle}s! Snapshot: '{snapshot}'"
+                            f"0 students & Fan ON for {elapsed_idle}s! Dispatching webhook..."
                         )
                         alert_dispatched = True
             else:
