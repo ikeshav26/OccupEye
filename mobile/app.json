@@ -2,7 +2,7 @@
   "expo": {
     "name": "mobile",
     "slug": "mobile",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "Keshav Gilhotra",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -13,7 +13,7 @@
     },
     "android": {
       "package": "com.occueye.mobile",
-      "versionCode": 1,
+      "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
