@@ -1,6 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
+  "author": "Keshav Gilhotra",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
@@ -8,6 +9,7 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
+    "@ikeshav26/keep-awake": "^1.0.3",
     "@types/cookie-parser": "^1.4.10",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.11.0",

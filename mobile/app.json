@@ -3,6 +3,7 @@
     "name": "mobile",
     "slug": "mobile",
     "version": "1.0.0",
+    "author": "Keshav Gilhotra",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mobile",
@@ -11,6 +12,8 @@
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.occueye.mobile",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -50,7 +53,8 @@
       "reactCompiler": true
     },
     "extra": {
-      "apiUrl": "http://192.168.29.204:3000",
+      "author": "Keshav Gilhotra",
+      "apiUrl": "https://occupeye.onrender.com",
       "eas": {
         "projectId": "72740a1b-cb38-4e89-b570-8b1e4f3a74b1"
       }

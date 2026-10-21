@@ -1,0 +1,200 @@
+name: Build & Release Mobile APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version tag (e.g. v1.0.1)'
+        required: true
+        default: 'v1.0.1'
+      api_url:
+        description: 'Backend API URL to inject into APK'
+        required: false
+        default: 'https://occupeye.onrender.com'
+      release_notes:
+        description: 'Release notes / changelog (optional)'
+        required: false
+        default: 'Automated release of OccupEye Mobile APK'
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build & Publish Android APK
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: "--max-old-space-size=4096"
+      GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve Version & Tag
+        id: prep
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            RAW_VER="${{ github.event.inputs.version }}"
+          else
+            RAW_VER="${{ github.ref_name }}"
+          fi
+
+          # Normalize tag (vX.Y.Z) and clean version (X.Y.Z)
+          if [[ $RAW_VER == v* ]]; then
+            TAG="$RAW_VER"
+            CLEAN_VERSION="${RAW_VER#v}"
+          else
+            TAG="v$RAW_VER"
+            CLEAN_VERSION="$RAW_VER"
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$CLEAN_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building OccupEye version $CLEAN_VERSION (Tag: $TAG)"
+
+      - name: Update Version and Config in Mobile App
+        env:
+          CLEAN_VERSION: ${{ steps.prep.outputs.version }}
+          INPUT_API_URL: ${{ github.event.inputs.api_url }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            const appJsonPath = "mobile/app.json";
+            const pkgJsonPath = "mobile/package.json";
+
+            if (fs.existsSync(appJsonPath)) {
+              const appJson = JSON.parse(fs.readFileSync(appJsonPath, "utf8"));
+              appJson.expo.version = process.env.CLEAN_VERSION;
+              appJson.expo.author = "Keshav Gilhotra";
+              appJson.expo.extra = appJson.expo.extra || {};
+              appJson.expo.extra.author = "Keshav Gilhotra";
+              if (process.env.INPUT_API_URL) {
+                appJson.expo.extra.apiUrl = process.env.INPUT_API_URL;
+              }
+              fs.writeFileSync(appJsonPath, JSON.stringify(appJson, null, 2) + "\n");
+            }
+
+            if (fs.existsSync(pkgJsonPath)) {
+              const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8"));
+              pkgJson.version = process.env.CLEAN_VERSION;
+              pkgJson.author = "Keshav Gilhotra";
+              fs.writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2) + "\n");
+            }
+
+            if (process.env.INPUT_API_URL) {
+              fs.writeFileSync("mobile/.env", "EXPO_PUBLIC_API_URL=" + process.env.INPUT_API_URL + "\n");
+            }
+          '
+
+      - name: Commit & Push Version Tag (if triggered via workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add mobile/app.json mobile/package.json mobile/.env 2>/dev/null || true
+          
+          TAG="${{ steps.prep.outputs.tag }}"
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "chore(release): bump mobile version to ${TAG}"
+            git tag -a "${TAG}" -m "Release ${TAG}"
+            git push origin HEAD:${{ github.ref_name }} --tags || echo "Push skipped or branch protected"
+          else
+            git tag -a "${TAG}" -m "Release ${TAG}" || true
+            git push origin "${TAG}" || true
+          fi
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          cache-dependency-path: mobile/pnpm-lock.yaml
+
+      - name: Install Mobile Dependencies
+        working-directory: mobile
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Native Android Directory (Expo Prebuild)
+        working-directory: mobile
+        run: pnpm exec expo prebuild -p android --no-install
+
+      - name: Build Android APK with Gradle
+        working-directory: mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Prepare & Sign APK for Direct Installation
+        run: |
+          TAG="${{ steps.prep.outputs.tag }}"
+          APK_FILE=$(find mobile/android/app/build/outputs/apk -name "*.apk" | head -n 1)
+          
+          if [ -z "$APK_FILE" ]; then
+            echo "Error: No APK file was generated!"
+            exit 1
+          fi
+
+          echo "Found APK: $APK_FILE"
+          DEST_NAME="OccupEye-${TAG}.apk"
+
+          # If the APK is unsigned, sign it with Expo's debug keystore so it installs immediately on any Android phone
+          if [[ "$APK_FILE" == *"unsigned"* ]]; then
+            echo "Signing unsigned APK with debug keystore..."
+            jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+              -keystore mobile/android/app/debug.keystore \
+              -storepass android -keypass android \
+              "$APK_FILE" androiddebugkey
+          fi
+
+          cp "$APK_FILE" "$DEST_NAME"
+          echo "Output APK ready at: $DEST_NAME"
+          ls -lh "$DEST_NAME"
+
+      - name: Upload APK as Workflow Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OccupEye-${{ steps.prep.outputs.tag }}-apk
+          path: OccupEye-*.apk
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.prep.outputs.tag }}
+          name: OccupEye ${{ steps.prep.outputs.tag }}
+          body: |
+            ## OccupEye Mobile App ${{ steps.prep.outputs.tag }}
+
+            ### 📱 Download & Install:
+            Download the **`OccupEye-${{ steps.prep.outputs.tag }}.apk`** below directly to your Android device to install.
+
+            ${{ github.event.inputs.release_notes }}
+          files: OccupEye-*.apk
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

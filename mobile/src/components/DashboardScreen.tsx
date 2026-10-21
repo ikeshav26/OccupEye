@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -13,20 +13,16 @@ import { Feather } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { changePasswordApi, updateUsernameApi } from '../services/api';
-import { sendTestNotification } from '../services/notifications';
+import {
+  checkForAppUpdate,
+  downloadAndInstallUpdate,
+  CURRENT_VERSION,
+  type AppReleaseInfo,
+} from '../services/updater';
 
 export default function DashboardScreen() {
   const { user, logout, updateUser } = useAuth();
   const { showToast } = useToast();
-
-  const handleTestNotification = async () => {
-    const res = await sendTestNotification();
-    showToast({
-      type: res.success ? 'success' : 'error',
-      title: res.success ? 'Notification Sent' : 'Permission Error',
-      message: res.message,
-    });
-  };
 
   const [newUsername, setNewUsername] = useState(user?.username || '');
   const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
@@ -37,6 +33,76 @@ export default function DashboardScreen() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<AppReleaseInfo | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleCheckUpdate = useCallback(async (isSilent = false) => {
+    setIsCheckingUpdate(true);
+    try {
+      const info = await checkForAppUpdate();
+      setUpdateInfo(info);
+      if (!isSilent) {
+        if (info.hasUpdate) {
+          showToast({
+            type: 'info',
+            title: 'Update Available',
+            message: `Version ${info.version} is ready to download!`,
+          });
+        } else {
+          showToast({
+            type: 'success',
+            title: 'Up to Date',
+            message: `OccupEye v${CURRENT_VERSION} is the latest version.`,
+          });
+        }
+      }
+    } catch {
+      if (!isSilent) {
+        showToast({
+          type: 'error',
+          title: 'Update Error',
+          message: 'Unable to check for updates right now.',
+        });
+      }
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  }, [showToast]);
+
+  useEffect(() => {
+    handleCheckUpdate(true);
+  }, [handleCheckUpdate]);
+
+  const handleUpdateApp = async () => {
+    if (!updateInfo?.downloadUrl) {
+      showToast({
+        type: 'error',
+        title: 'Download Error',
+        message: 'No download URL found for this release.',
+      });
+      return;
+    }
+
+    setIsUpdating(true);
+    showToast({
+      type: 'info',
+      title: 'Downloading Update',
+      message: `Downloading v${updateInfo.version}... Confirm the prompt to update your app.`,
+    });
+
+    const success = await downloadAndInstallUpdate(updateInfo.downloadUrl);
+    setIsUpdating(false);
+
+    if (!success) {
+      showToast({
+        type: 'error',
+        title: 'Launch Failed',
+        message: 'Could not open package installer automatically.',
+      });
+    }
+  };
 
   const handleUpdateUsername = async () => {
     if (!newUsername.trim()) {
@@ -278,17 +344,85 @@ export default function DashboardScreen() {
       <View style={styles.divider} />
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Device Notifications</Text>
-        <Text style={styles.sectionSubtitle}>
-          Verify that system alerts, sound, vibration, and lock screen notifications are active on this phone.
-        </Text>
-        <TouchableOpacity
-          style={styles.secondaryBtn}
-          onPress={handleTestNotification}
-          activeOpacity={0.85}>
-          <Feather name="bell" size={15} color="#0F172A" style={{ marginRight: 8 }} />
-          <Text style={styles.secondaryBtnText}>Test Mobile Notification</Text>
-        </TouchableOpacity>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>App Version & Updates</Text>
+          <TouchableOpacity
+            onPress={() => handleCheckUpdate(false)}
+            disabled={isCheckingUpdate}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={styles.checkUpdateIconBtn}>
+            {isCheckingUpdate ? (
+              <ActivityIndicator size="small" color="#00A896" />
+            ) : (
+              <Feather name="refresh-cw" size={15} color="#64748B" />
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.updateCard}>
+          <View style={styles.updateCardTop}>
+            <View style={styles.versionCol}>
+              <Text style={styles.versionLabel}>Installed Version</Text>
+              <Text style={styles.versionValue}>v{CURRENT_VERSION}</Text>
+            </View>
+
+            <View
+              style={[
+                styles.statusBadge,
+                updateInfo?.hasUpdate ? styles.statusBadgeUpdate : styles.statusBadgeLatest,
+              ]}>
+              <Feather
+                name={updateInfo?.hasUpdate ? 'arrow-up-circle' : 'check-circle'}
+                size={12}
+                color={updateInfo?.hasUpdate ? '#00A896' : '#10B981'}
+                style={{ marginRight: 4 }}
+              />
+              <Text
+                style={[
+                  styles.statusBadgeText,
+                  updateInfo?.hasUpdate
+                    ? styles.statusBadgeTextUpdate
+                    : styles.statusBadgeTextLatest,
+                ]}>
+                {isCheckingUpdate
+                  ? 'Checking...'
+                  : updateInfo?.hasUpdate
+                  ? `v${updateInfo.version} Available`
+                  : 'Up to Date'}
+              </Text>
+            </View>
+          </View>
+
+          {updateInfo?.hasUpdate ? (
+            <TouchableOpacity
+              style={[styles.updateActionBtn, isUpdating && styles.btnDisabled]}
+              onPress={handleUpdateApp}
+              disabled={isUpdating}
+              activeOpacity={0.85}>
+              {isUpdating ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <>
+                  <Feather name="download-cloud" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+                  <Text style={styles.updateActionBtnText}>
+                    Download & Install Update (v{updateInfo.version})
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.upToDateBox}>
+              <Feather name="check" size={14} color="#10B981" style={{ marginRight: 6 }} />
+              <Text style={styles.upToDateText}>You are on the latest version of OccupEye</Text>
+            </View>
+          )}
+
+          <View style={styles.authorRow}>
+            <Text style={styles.authorText}>
+              Author: <Text style={styles.authorBold}>Keshav Gilhotra</Text>
+            </Text>
+          </View>
+        </View>
       </View>
     </ScrollView>
   );
@@ -383,11 +517,24 @@ const styles = StyleSheet.create({
   section: {
     marginVertical: 4,
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
   sectionTitle: {
     fontSize: 15,
     fontFamily: 'PlusJakartaSans_700Bold',
     color: '#0F172A',
-    marginBottom: 14,
+    marginBottom: 0,
+  },
+  checkUpdateIconBtn: {
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   fieldBox: {
     flexDirection: 'row',
@@ -427,26 +574,107 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F5F9',
     marginVertical: 28,
   },
-  sectionSubtitle: {
-    fontSize: 12,
-    fontFamily: 'PlusJakartaSans_400Regular',
-    color: '#64748B',
-    marginBottom: 12,
-    lineHeight: 18,
-  },
-  secondaryBtn: {
-    flexDirection: 'row',
-    height: 46,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
+  updateCard: {
     backgroundColor: '#F8FAFC',
-    justifyContent: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 16,
+  },
+  updateCardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 14,
+  },
+  versionCol: {
+    flex: 1,
+  },
+  versionLabel: {
+    fontSize: 11,
+    fontFamily: 'PlusJakartaSans_500Medium',
+    color: '#64748B',
+  },
+  versionValue: {
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    color: '#0F172A',
     marginTop: 2,
   },
-  secondaryBtnText: {
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  statusBadgeLatest: {
+    backgroundColor: '#ECFDF5',
+  },
+  statusBadgeUpdate: {
+    backgroundColor: '#E6FFFA',
+    borderWidth: 1,
+    borderColor: '#99F6E4',
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+  },
+  statusBadgeTextLatest: {
+    color: '#059669',
+  },
+  statusBadgeTextUpdate: {
+    color: '#00A896',
+  },
+  updateActionBtn: {
+    flexDirection: 'row',
+    backgroundColor: '#00A896',
+    borderRadius: 10,
+    height: 46,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 4,
+    shadowColor: '#00A896',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  updateActionBtnText: {
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    color: '#FFFFFF',
+  },
+  upToDateBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginTop: 2,
+  },
+  upToDateText: {
     fontSize: 13,
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+    color: '#64748B',
+  },
+  authorRow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  authorText: {
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans_500Medium',
+    color: '#94A3B8',
+  },
+  authorBold: {
     fontFamily: 'PlusJakartaSans_700Bold',
     color: '#0F172A',
   },
