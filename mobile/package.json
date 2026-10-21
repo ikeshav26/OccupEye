@@ -1,6 +1,6 @@
 {
   "name": "occupeye",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Keshav Gilhotra",
   "main": "expo-router/entry",
   "dependencies": {
