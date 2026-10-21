@@ -34,4 +34,6 @@ snapshots/
 *.jpg
 *.jpeg
 *.png
+!mobile/assets/**
+!docs/**
 .neon
