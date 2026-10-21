@@ -11,6 +11,15 @@ on:
         description: 'Backend API URL to inject into APK'
         required: false
         default: 'https://occupeye.onrender.com'
+      arch:
+        description: 'Architecture (arm64-v8a for modern phones ~35MB, universal for all ~100MB)'
+        required: false
+        default: 'arm64-v8a'
+        type: choice
+        options:
+          - 'arm64-v8a'
+          - 'arm64-v8a,armeabi-v7a'
+          - 'universal'
       release_notes:
         description: 'Release notes / changelog (optional)'
         required: false
@@ -132,15 +141,29 @@ jobs:
 
       - name: Generate Native Android Directory (Expo Prebuild)
         working-directory: mobile
-        run: pnpm exec expo prebuild -p android --no-install
+        run: |
+          pnpm exec expo prebuild -p android --no-install
+          if [ -f "release.keystore" ]; then
+            echo "Injecting persistent release.keystore into generated android project..."
+            cp release.keystore android/app/debug.keystore
+          fi
 
       - name: Build Android APK with Gradle
         working-directory: mobile/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          TARGET_ARCH="${{ github.event.inputs.arch || 'arm64-v8a' }}"
+          if [ "$TARGET_ARCH" = "universal" ]; then
+            ARCH_ARG=""
+          else
+            ARCH_ARG="-PreactNativeArchitectures=${TARGET_ARCH}"
+          fi
+          echo "Building APK with architecture flag: $ARCH_ARG"
+          ./gradlew assembleRelease --no-daemon --parallel --build-cache \
+            $ARCH_ARG \
+            -Pandroid.enableBundleCompression=true
 
-      - name: Prepare & Sign APK for Direct Installation
+      - name: Prepare & Verify APK for Direct Installation
         run: |
           TAG="${{ steps.prep.outputs.tag }}"
           APK_FILE=$(find mobile/android/app/build/outputs/apk -name "*.apk" | head -n 1)
@@ -153,13 +176,13 @@ jobs:
           echo "Found APK: $APK_FILE"
           DEST_NAME="OccupEye-${TAG}.apk"
 
-          # If the APK is unsigned, sign it with Expo's debug keystore so it installs immediately on any Android phone
-          if [[ "$APK_FILE" == *"unsigned"* ]]; then
-            echo "Signing unsigned APK with debug keystore..."
-            jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-              -keystore mobile/android/app/debug.keystore \
-              -storepass android -keypass android \
-              "$APK_FILE" androiddebugkey
+          # Verify signature with apksigner if available in Android SDK
+          if [ -n "$ANDROID_HOME" ] && [ -d "$ANDROID_HOME/build-tools" ]; then
+            APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name "apksigner" | sort -V | tail -n 1)
+            if [ -n "$APKSIGNER" ] && [ -x "$APKSIGNER" ]; then
+              echo "Verifying APK signature using $APKSIGNER..."
+              "$APKSIGNER" verify --verbose "$APK_FILE" || true
+            fi
           fi
 
           cp "$APK_FILE" "$DEST_NAME"
