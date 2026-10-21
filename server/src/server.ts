@@ -8,7 +8,6 @@ import { initSocketServer } from "./sockets/socket.js";
 
 const httpServer = createServer(app);
 
-// Initialize modern real-time Socket.IO server connected to the event bus
 initSocketServer(httpServer);
 
 httpServer.listen(env.PORT, () => {

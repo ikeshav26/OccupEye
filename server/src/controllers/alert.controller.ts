@@ -4,6 +4,7 @@ import { db } from "../db/db.js";
 import { notificationsTable, type NewNotification } from "../db/schema.js";
 import { uploadSnapshot, deleteSnapshot } from "../config/cloudinary.js";
 import { getIO } from "../sockets/socket.js";
+import { sendExpoPushNotification, registerDeviceToken } from "../services/pushNotification.service.js";
 
 //function to be called by the detection service
 export const createAlert = async (req: Request, res: Response): Promise<void> => {
@@ -55,6 +56,21 @@ export const createAlert = async (req: Request, res: Response): Promise<void> =>
       console.warn("[Alert] Socket emit skipped (server not fully bound yet):", socketErr);
     }
 
+    // Trigger Expo push notification so phone rings/wakes up with screen off
+    sendExpoPushNotification({
+      title: `⚠️ Energy Waste: ${classroom_id.replace("_", " ").toUpperCase()}`,
+      body: `Fan is ON with ${student_count} occupants for ${idle_seconds}s!`,
+      data: {
+        alertId: alert.id,
+        classroomId: classroom_id,
+        studentCount: student_count,
+        fanStatus: fan_status,
+        idleSeconds: idle_seconds,
+      },
+    }).catch((pushErr) => {
+      console.warn("[Alert] Push notification dispatch warning:", pushErr);
+    });
+
     res.status(201).json({
       success: true,
       message: "Alert recorded and emitted successfully",
@@ -69,6 +85,21 @@ export const createAlert = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+export const registerPushToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token, deviceType = "unknown" } = req.body;
+    if (!token || typeof token !== "string") {
+      res.status(400).json({ error: "Bad Request", message: "token is required" });
+      return;
+    }
+
+    await registerDeviceToken(token, deviceType);
+    res.json({ success: true, message: "Push token registered successfully" });
+  } catch (err) {
+    console.error("[Alert] Error registering push token:", err);
+    res.status(500).json({ error: "Internal Server Error", message: "Failed to register push token" });
+  }
+};
 
 export const getAlerts = async (req: Request, res: Response): Promise<void> => {
   try {

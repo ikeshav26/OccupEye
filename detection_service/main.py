@@ -115,11 +115,15 @@ def main():
     fan_tracker = FanTracker()
     fan_tracker.start()
 
-    logger.info(f"OccupEye running for '{config.CLASSROOM_ID}' (Idle Threshold: {config.IDLE_TIME_THRESHOLD}s). Press 'q' to quit.")
+    logger.info(
+        f"OccupEye running for '{config.CLASSROOM_ID}' "
+        f"(Idle Threshold: {config.IDLE_TIME_THRESHOLD}s, Repeat Interval: {config.ALERT_REPEAT_INTERVAL}s). "
+        f"Press 'q' to quit."
+    )
 
     idle_start_time: Optional[float] = None
     last_active_time = 0.0
-    alert_dispatched = False
+    last_alert_dispatch_time = 0.0
 
     try:
         while True:
@@ -146,7 +150,9 @@ def main():
                 elapsed_idle = int(current_time - idle_start_time)
                 if elapsed_idle >= config.IDLE_TIME_THRESHOLD:
                     is_alert = True
-                    if not alert_dispatched:
+                    # Send alert immediately once threshold is met, then repeat every ALERT_REPEAT_INTERVAL seconds
+                    time_since_last_alert = current_time - last_alert_dispatch_time
+                    if last_alert_dispatch_time == 0.0 or time_since_last_alert >= config.ALERT_REPEAT_INTERVAL:
                         dispatch_alert_webhook(
                             frame,
                             config.CLASSROOM_ID,
@@ -156,13 +162,14 @@ def main():
                         )
                         logger.warning(
                             f"⚠️ [WARNING] Energy waste in '{config.CLASSROOM_ID}': "
-                            f"0 students & Fan ON for {elapsed_idle}s! Dispatching webhook..."
+                            f"0 students & Fan ON for {elapsed_idle}s! Dispatching webhook "
+                            f"(next repeat in {config.ALERT_REPEAT_INTERVAL}s)..."
                         )
-                        alert_dispatched = True
+                        last_alert_dispatch_time = current_time
             else:
                 if (current_time - last_active_time) > 2.0:
                     idle_start_time = None
-                    alert_dispatched = False
+                    last_alert_dispatch_time = 0.0
                     elapsed_idle = 0
                 elif idle_start_time is not None:
                     elapsed_idle = int(current_time - idle_start_time)

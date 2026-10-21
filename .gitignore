@@ -34,3 +34,4 @@ snapshots/
 *.jpg
 *.jpeg
 *.png
+.neon

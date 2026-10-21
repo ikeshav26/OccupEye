@@ -1,9 +1,16 @@
+import { createServer } from "node:http";
+import dotenv from "dotenv";
+dotenv.config();
+
 import app from "./src/app.js";
-import dotenv from 'dotenv'
-dotenv.config()
+import { env } from "./src/config/env.js";
+import { initSocketServer } from "./src/sockets/socket.js";
 
-const port = process.env.PORT
+const port = env.PORT;
+const httpServer = createServer(app);
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`)
-})
+initSocketServer(httpServer);
+
+httpServer.listen(port, () => {
+  console.log(`[OccupEye] Server running on port ${port}`);
+});

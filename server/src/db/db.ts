@@ -16,6 +16,10 @@ export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+pool.on("error", (err) => {
+  console.error("[Database Pool Error] Unexpected idle client error:", err);
+});
+
 export const relations = defineRelations(schema, () => ({}));
 
 export const db = drizzle({ client: pool, relations });
