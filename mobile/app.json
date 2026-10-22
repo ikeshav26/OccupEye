@@ -2,7 +2,7 @@
   "expo": {
     "name": "OccupEye",
     "slug": "occupeye",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "author": "Keshav Gilhotra",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -13,7 +13,7 @@
     },
     "android": {
       "package": "com.occueye.mobile",
-      "versionCode": 4,
+      "versionCode": 5,
       "softwareKeyboardLayoutMode": "pan",
       "permissions": [
         "VIBRATE",
