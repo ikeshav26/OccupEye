@@ -4,7 +4,7 @@ import { db } from "../db/db.js";
 import { notificationsTable, type NewNotification } from "../db/schema.js";
 import { uploadSnapshot, deleteSnapshot } from "../config/cloudinary.js";
 import { getIO } from "../sockets/socket.js";
-import { sendExpoPushNotification, registerDeviceToken } from "../services/pushNotification.service.js";
+import { sendExpoPushNotification, registerDeviceToken, removeDeviceToken } from "../services/pushNotification.service.js";
 
 //function to be called by the detection service
 export const createAlert = async (req: Request, res: Response): Promise<void> => {
@@ -98,6 +98,19 @@ export const registerPushToken = async (req: Request, res: Response): Promise<vo
   } catch (err) {
     console.error("[Alert] Error registering push token:", err);
     res.status(500).json({ error: "Internal Server Error", message: "Failed to register push token" });
+  }
+};
+
+export const unregisterPushToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token } = req.body;
+    if (token && typeof token === "string") {
+      await removeDeviceToken(token);
+    }
+    res.json({ success: true, message: "Push token unregistered successfully" });
+  } catch (err) {
+    console.error("[Alert] Error unregistering push token:", err);
+    res.status(500).json({ error: "Internal Server Error", message: "Failed to unregister push token" });
   }
 };
 

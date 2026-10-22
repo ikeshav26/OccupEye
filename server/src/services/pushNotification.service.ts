@@ -91,7 +91,8 @@ export async function sendExpoPushNotification({
     body,
     data: data || {},
     priority: "high",
-    channelId: "occueye-alerts",
+    channelId: "occueye-alerts-v2",
+    _displayInForeground: true,
   }));
 
   try {

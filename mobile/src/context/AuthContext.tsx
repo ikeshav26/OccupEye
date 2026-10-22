@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginApi, verifyAuthApi, AUTH_TOKEN_KEY } from '../services/api';
+import { registerForPushNotifications, unregisterPushNotifications } from '../services/notifications';
+import { disconnectSocket } from '../services/socket';
 
 const USER_DATA_KEY = 'occueye_user_data';
 
@@ -45,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (savedToken) {
         setToken(savedToken);
+        registerForPushNotifications().catch(() => {});
         if (savedUser) {
           try {
             setUser(JSON.parse(savedUser));
@@ -78,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(res.user));
         setToken(res.token);
         setUser(res.user);
+        registerForPushNotifications().catch(() => {});
         return { success: true };
       }
       return { success: false, message: res.message || 'Login failed' };
@@ -91,6 +95,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
+      await unregisterPushNotifications().catch(() => {});
+      disconnectSocket();
       await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
       await AsyncStorage.removeItem(USER_DATA_KEY);
     } finally {

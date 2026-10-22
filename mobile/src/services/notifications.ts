@@ -1,6 +1,7 @@
 import { Platform, Vibration } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import { getApiClient } from './api';
+import { getApiClient, AUTH_TOKEN_KEY } from './api';
 
 let NotificationsModule: typeof import('expo-notifications') | null = null;
 try {
@@ -20,6 +21,7 @@ try {
   console.warn('[Notification] expo-notifications native module not available in this environment:', e);
 }
 
+export const ALERT_CHANNEL_ID = 'occueye-alerts-v2';
 let channelsConfigured = false;
 
 export async function setupNotificationChannels(): Promise<boolean> {
@@ -29,15 +31,18 @@ export async function setupNotificationChannels(): Promise<boolean> {
   if (channelsConfigured) return true;
 
   try {
-    await NotificationsModule.setNotificationChannelAsync('occueye-alerts', {
+    await NotificationsModule.setNotificationChannelAsync(ALERT_CHANNEL_ID, {
       name: 'OccupEye Energy Alerts',
+      description: 'Audible alerts with vibration when energy is wasted in empty rooms',
       importance: NotificationsModule.AndroidImportance.MAX,
       vibrationPattern: [0, 500, 200, 500],
       lightColor: '#00A896',
       sound: 'default',
       enableVibrate: true,
+      enableLights: true,
       showBadge: true,
       lockscreenVisibility: NotificationsModule.AndroidNotificationVisibility.PUBLIC,
+      bypassDnd: true,
     });
 
     await NotificationsModule.setNotificationChannelAsync('default', {
@@ -51,7 +56,7 @@ export async function setupNotificationChannels(): Promise<boolean> {
     channelsConfigured = true;
     return true;
   } catch (err) {
-    console.log('[Notification] Custom channel creation skipped (using runtime default channel):', err);
+    console.log('[Notification] Custom channel creation note:', err);
     return false;
   }
 }
@@ -62,6 +67,12 @@ export async function registerForPushNotifications(): Promise<string | null> {
   }
 
   try {
+    const authToken = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+    if (!authToken) {
+      console.log('[Notification] User is not logged in. Skipping push token registration.');
+      return null;
+    }
+
     await setupNotificationChannels().catch(() => false);
 
     const { status: existingStatus } = await NotificationsModule.getPermissionsAsync();
@@ -115,6 +126,41 @@ export async function registerForPushNotifications(): Promise<string | null> {
   }
 }
 
+export async function unregisterPushNotifications(): Promise<void> {
+  if (Platform.OS === 'web' || !NotificationsModule) {
+    return;
+  }
+
+  try {
+    const projectId =
+      Constants.expoConfig?.extra?.eas?.projectId ??
+      Constants.easConfig?.projectId ??
+      '72740a1b-cb38-4e89-b570-8b1e4f3a74b1';
+
+    let token: string | null = null;
+    try {
+      const tokenData = await NotificationsModule.getExpoPushTokenAsync({ projectId });
+      token = tokenData.data;
+    } catch {
+      try {
+        const deviceToken = await NotificationsModule.getDevicePushTokenAsync();
+        token = deviceToken.data;
+      } catch {}
+    }
+
+    if (token) {
+      console.log('[Notification] Unregistering device push token on logout:', token);
+      const client = await getApiClient();
+      await client.delete('/api/alerts/push-token', {
+        data: { token },
+      });
+      console.log('[Notification] Push token unregistered successfully from server.');
+    }
+  } catch (err) {
+    console.warn('[Notification] Failed to unregister push token:', err);
+  }
+}
+
 export async function triggerAlertNotification(alert: {
   id: number;
   classroomId: string;
@@ -122,6 +168,12 @@ export async function triggerAlertNotification(alert: {
   fanStatus: string;
   idleSeconds: number;
 }): Promise<void> {
+  // Only present notification if the user is currently logged in with a valid auth token
+  const authToken = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+  if (!authToken) {
+    return;
+  }
+
   try {
     Vibration.vibrate([0, 500, 200, 500]);
   } catch {
@@ -132,7 +184,14 @@ export async function triggerAlertNotification(alert: {
   }
 
   try {
-    const hasChannels = await setupNotificationChannels().catch(() => false);
+    await setupNotificationChannels().catch(() => false);
+
+    try {
+      const { status } = await NotificationsModule.getPermissionsAsync();
+      if (status !== 'granted') {
+        await NotificationsModule.requestPermissionsAsync();
+      }
+    } catch {}
 
     await NotificationsModule.scheduleNotificationAsync({
       content: {
@@ -142,58 +201,10 @@ export async function triggerAlertNotification(alert: {
         priority: NotificationsModule.AndroidNotificationPriority.MAX,
         vibrate: [0, 500, 200, 500],
         data: { alertId: alert.id, classroomId: alert.classroomId },
-        ...(hasChannels && Platform.OS === 'android' ? { channelId: 'occueye-alerts' } : {}),
       },
-      trigger: null,
+      trigger: Platform.OS === 'android' ? { channelId: ALERT_CHANNEL_ID } : null,
     });
   } catch (error) {
     console.warn('[Notification] System notification dispatch:', error);
-  }
-}
-
-export async function sendTestNotification(): Promise<{ success: boolean; message: string }> {
-  try {
-    Vibration.vibrate([0, 250, 100, 250]);
-  } catch {
-  }
-
-  if (Platform.OS === 'web') {
-    return { success: true, message: 'Web preview: In-app alerts and socket events are active.' };
-  }
-
-  try {
-    const hasChannels = await setupNotificationChannels().catch(() => false);
-
-    if (NotificationsModule?.requestPermissionsAsync) {
-      await NotificationsModule.requestPermissionsAsync().catch(() => null);
-    }
-
-    if (NotificationsModule?.scheduleNotificationAsync) {
-      await NotificationsModule.scheduleNotificationAsync({
-        content: {
-          title: '🔔 OccupEye Mobile Alerts Active',
-          body: 'System notifications & vibrations are functioning! You will receive alerts when fans run in empty classrooms.',
-          sound: 'default',
-          priority: NotificationsModule.AndroidNotificationPriority.MAX,
-          vibrate: [0, 250, 250, 250],
-          data: { test: true },
-          ...(hasChannels && Platform.OS === 'android' ? { channelId: 'occueye-alerts' } : {}),
-        },
-        trigger: null,
-      }).catch((schedErr) => {
-        console.log('[Notification] Notification scheduler info:', schedErr);
-      });
-    }
-
-    return {
-      success: true,
-      message: 'Mobile test notification & vibration sent! Check your notification bar / lock screen.',
-    };
-  } catch (err: unknown) {
-    console.warn('[Notification] sendTestNotification fallback:', err);
-    return {
-      success: true,
-      message: 'Alert test active! Device vibration and socket alerts verified.',
-    };
   }
 }
