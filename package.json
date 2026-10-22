@@ -1,0 +1,17 @@
+{
+  "name": "occupeye-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo workspace for OccupEye: Automated Classroom Energy & Occupancy Monitoring",
+  "scripts": {
+    "dev": "concurrently -n \"server,mobile\" -c \"blue,green\" \"pnpm -C server run dev\" \"pnpm -C mobile run start\"",
+    "dev:server": "pnpm -C server run dev",
+    "dev:mobile": "pnpm -C mobile run start",
+    "install:all": "pnpm -C server install && pnpm -C mobile install",
+    "build:server": "pnpm -C server run build",
+    "check:mobile": "pnpm -C mobile exec tsc --noEmit"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
