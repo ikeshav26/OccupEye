@@ -172,7 +172,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               onPress={hideToast}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               style={styles.closeBtn}>
-              <Feather name="x" size={13} color="#94A3B8" />
+              <Feather name="x" size={13} color="#9E968F" />
             </TouchableOpacity>
           </TouchableOpacity>
         </Animated.View>
@@ -202,13 +202,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     width: '100%',
     maxWidth: 400,
-    shadowColor: '#0F172A',
+    shadowColor: '#1C1917',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 20,
     elevation: 6,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAE2D5',
   },
   iconCircle: {
     width: 30,
@@ -225,13 +225,13 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 13,
     fontFamily: 'PlusJakartaSans_700Bold',
-    color: '#0F172A',
+    color: '#1C1917',
     letterSpacing: -0.2,
   },
   messageText: {
     fontSize: 12,
     fontFamily: 'PlusJakartaSans_500Medium',
-    color: '#64748B',
+    color: '#68625D',
     marginTop: 1,
     lineHeight: 16,
   },
@@ -239,10 +239,10 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F5EFEB',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: '#EAE2D5',
   },
 });

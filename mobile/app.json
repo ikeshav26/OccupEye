@@ -7,15 +7,22 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "occupeye",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "ios": {
       "icon": "./assets/expo.icon"
     },
     "android": {
       "package": "com.occueye.mobile",
       "versionCode": 4,
+      "softwareKeyboardLayoutMode": "pan",
+      "permissions": [
+        "VIBRATE",
+        "POST_NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "WAKE_LOCK"
+      ],
       "adaptiveIcon": {
-        "backgroundColor": "#080D1A",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -31,9 +38,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#080D1A",
+          "backgroundColor": "#FAF7F2",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 120
+          "imageWidth": 160
         }
       ],
       "expo-font",

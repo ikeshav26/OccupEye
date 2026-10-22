@@ -8,6 +8,7 @@ try {
   if (Platform.OS !== 'web' && NotificationsModule?.setNotificationHandler) {
     NotificationsModule.setNotificationHandler({
       handleNotification: async () => ({
+        shouldShowAlert: true,
         shouldShowBanner: true,
         shouldShowList: true,
         shouldPlaySound: true,
@@ -31,11 +32,12 @@ export async function setupNotificationChannels(): Promise<boolean> {
     await NotificationsModule.setNotificationChannelAsync('occueye-alerts', {
       name: 'OccupEye Energy Alerts',
       importance: NotificationsModule.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
+      vibrationPattern: [0, 500, 200, 500],
       lightColor: '#00A896',
       sound: 'default',
       enableVibrate: true,
       showBadge: true,
+      lockscreenVisibility: NotificationsModule.AndroidNotificationVisibility.PUBLIC,
     });
 
     await NotificationsModule.setNotificationChannelAsync('default', {
@@ -121,7 +123,7 @@ export async function triggerAlertNotification(alert: {
   idleSeconds: number;
 }): Promise<void> {
   try {
-    Vibration.vibrate([0, 350, 150, 350]);
+    Vibration.vibrate([0, 500, 200, 500]);
   } catch {
   }
 
@@ -138,7 +140,7 @@ export async function triggerAlertNotification(alert: {
         body: `Fan ON with ${alert.studentCount} occupants for ${alert.idleSeconds}s!`,
         sound: 'default',
         priority: NotificationsModule.AndroidNotificationPriority.MAX,
-        vibrate: [0, 300, 200, 300],
+        vibrate: [0, 500, 200, 500],
         data: { alertId: alert.id, classroomId: alert.classroomId },
         ...(hasChannels && Platform.OS === 'android' ? { channelId: 'occueye-alerts' } : {}),
       },

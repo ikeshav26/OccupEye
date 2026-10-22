@@ -202,7 +202,7 @@ export default function AlertsScreen() {
           style={styles.refreshBtn}
           onPress={() => fetchAlerts(false)}
           activeOpacity={0.7}>
-          <Feather name="refresh-cw" size={15} color="#64748B" />
+          <Feather name="refresh-cw" size={15} color="#8C827A" />
         </TouchableOpacity>
       </View>
 
@@ -265,7 +265,7 @@ export default function AlertsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF7F2',
   },
   header: {
     paddingHorizontal: 20,
@@ -275,45 +275,45 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#EFE8DE',
   },
   title: {
     fontSize: 24,
     fontFamily: 'PlusJakartaSans_800ExtraBold',
-    color: '#0F172A',
+    color: '#1C1917',
     letterSpacing: -0.5,
   },
   refreshBtn: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAE2D5',
   },
   tabBar: {
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#EFE8DE',
     gap: 8,
   },
   tab: {
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 8,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAE2D5',
   },
   tabActive: {
-    backgroundColor: '#0F172A',
-    borderColor: '#0F172A',
+    backgroundColor: '#00A896',
+    borderColor: '#00A896',
   },
   tabText: {
     fontSize: 12,
     fontFamily: 'PlusJakartaSans_600SemiBold',
-    color: '#64748B',
+    color: '#68625D',
   },
   tabTextActive: {
     color: '#FFFFFF',
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAE2D5',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -349,12 +349,12 @@ const styles = StyleSheet.create({
   roomName: {
     fontSize: 14,
     fontFamily: 'PlusJakartaSans_700Bold',
-    color: '#0F172A',
+    color: '#1C1917',
   },
   timestamp: {
     fontSize: 12,
     fontFamily: 'PlusJakartaSans_500Medium',
-    color: '#94A3B8',
+    color: '#8C827A',
   },
   headerRight: {
     flexDirection: 'row',
@@ -369,13 +369,13 @@ const styles = StyleSheet.create({
   statusLabel: {
     fontSize: 12,
     fontFamily: 'PlusJakartaSans_600SemiBold',
-    color: '#64748B',
+    color: '#68625D',
   },
   snapshotImage: {
     width: '100%',
     height: 150,
     borderRadius: 8,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#1C1917',
     marginBottom: 12,
   },
   metricsRow: {
@@ -383,20 +383,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: '#F8FAFC',
+    borderTopColor: '#F5EFEB',
   },
   metricText: {
     fontSize: 12,
     fontFamily: 'PlusJakartaSans_500Medium',
-    color: '#64748B',
+    color: '#68625D',
   },
   metricBold: {
     fontFamily: 'PlusJakartaSans_700Bold',
-    color: '#0F172A',
+    color: '#1C1917',
   },
   metricBullet: {
     marginHorizontal: 8,
-    color: '#CBD5E1',
+    color: '#D6CEC5',
     fontSize: 10,
   },
   actionsRow: {
@@ -410,8 +410,8 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
+    borderColor: '#EAE2D5',
+    backgroundColor: '#F5EFEB',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
   turnOffBtnText: {
     fontSize: 13,
     fontFamily: 'PlusJakartaSans_700Bold',
-    color: '#0F172A',
+    color: '#1C1917',
   },
   resolveBtn: {
     flex: 1,
@@ -446,13 +446,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 15,
     fontFamily: 'PlusJakartaSans_700Bold',
-    color: '#0F172A',
+    color: '#1C1917',
     marginBottom: 4,
   },
   emptySubtitle: {
     fontSize: 13,
     fontFamily: 'PlusJakartaSans_400Regular',
-    color: '#64748B',
+    color: '#8C827A',
     textAlign: 'center',
   },
 });

@@ -96,7 +96,7 @@ export default function MainApp() {
           <Feather
             name="user"
             size={20}
-            color={activeTab === 'dashboard' ? '#00A896' : '#94A3B8'}
+            color={activeTab === 'dashboard' ? '#00A896' : '#8C827A'}
           />
           <Text
             style={[
@@ -115,7 +115,7 @@ export default function MainApp() {
             <Feather
               name="bell"
               size={20}
-              color={activeTab === 'alerts' ? '#00A896' : '#94A3B8'}
+              color={activeTab === 'alerts' ? '#00A896' : '#8C827A'}
             />
             {activeAlertCount > 0 && (
               <View style={styles.badgeDot} />
@@ -137,13 +137,13 @@ export default function MainApp() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF7F2',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF7F2',
   },
   content: {
     flex: 1,
@@ -154,12 +154,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: Platform.OS === 'ios' ? 82 : 64,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF7F2',
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: '#EFE8DE',
     paddingBottom: Platform.OS === 'ios' ? 18 : 6,
   },
   tabItem: {
@@ -191,6 +191,6 @@ const styles = StyleSheet.create({
   },
   tabLabelInactive: {
     fontFamily: 'PlusJakartaSans_500Medium',
-    color: '#94A3B8',
+    color: '#8C827A',
   },
 });

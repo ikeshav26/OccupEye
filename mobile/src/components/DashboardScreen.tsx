@@ -248,7 +248,7 @@ export default function DashboardScreen() {
             value={newUsername}
             onChangeText={setNewUsername}
             placeholder="Username"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor="#9E968F"
             autoCapitalize="none"
             autoCorrect={false}
           />
@@ -277,7 +277,7 @@ export default function DashboardScreen() {
             value={currentPassword}
             onChangeText={setCurrentPassword}
             placeholder="Current password"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor="#9E968F"
             secureTextEntry={!showCurrentPassword}
             autoCapitalize="none"
             autoCorrect={false}
@@ -288,7 +288,7 @@ export default function DashboardScreen() {
             <Feather
               name={showCurrentPassword ? 'eye' : 'eye-off'}
               size={16}
-              color="#94A3B8"
+              color="#9E968F"
             />
           </TouchableOpacity>
         </View>
@@ -299,7 +299,7 @@ export default function DashboardScreen() {
             value={newPassword}
             onChangeText={setNewPassword}
             placeholder="New password (min 6 characters)"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor="#9E968F"
             secureTextEntry={!showNewPassword}
             autoCapitalize="none"
             autoCorrect={false}
@@ -310,7 +310,7 @@ export default function DashboardScreen() {
             <Feather
               name={showNewPassword ? 'eye' : 'eye-off'}
               size={16}
-              color="#94A3B8"
+              color="#9E968F"
             />
           </TouchableOpacity>
         </View>
@@ -321,7 +321,7 @@ export default function DashboardScreen() {
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             placeholder="Confirm new password"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor="#9E968F"
             secureTextEntry={!showNewPassword}
             autoCapitalize="none"
             autoCorrect={false}
@@ -354,7 +354,7 @@ export default function DashboardScreen() {
             {isCheckingUpdate ? (
               <ActivityIndicator size="small" color="#00A896" />
             ) : (
-              <Feather name="refresh-cw" size={15} color="#64748B" />
+              <Feather name="refresh-cw" size={15} color="#8C827A" />
             )}
           </TouchableOpacity>
         </View>
@@ -387,13 +387,13 @@ export default function DashboardScreen() {
                 {isCheckingUpdate
                   ? 'Checking...'
                   : updateInfo?.hasUpdate
-                  ? `v${updateInfo.version} Available`
-                  : 'Up to Date'}
+                    ? `v${updateInfo.version} Available`
+                    : 'Up to Date'}
               </Text>
             </View>
           </View>
 
-          {updateInfo?.hasUpdate ? (
+          {updateInfo?.hasUpdate && (
             <TouchableOpacity
               style={[styles.updateActionBtn, isUpdating && styles.btnDisabled]}
               onPress={handleUpdateApp}
@@ -410,11 +410,6 @@ export default function DashboardScreen() {
                 </>
               )}
             </TouchableOpacity>
-          ) : (
-            <View style={styles.upToDateBox}>
-              <Feather name="check" size={14} color="#10B981" style={{ marginRight: 6 }} />
-              <Text style={styles.upToDateText}>You are on the latest version of OccupEye</Text>
-            </View>
           )}
 
           <View style={styles.authorRow}>
@@ -431,7 +426,7 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF7F2',
   },
   scrollContent: {
     paddingHorizontal: 24,
@@ -444,7 +439,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 22,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#EFE8DE',
     marginBottom: 24,
   },
   headerTitleWrapper: {
@@ -454,13 +449,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontFamily: 'PlusJakartaSans_800ExtraBold',
-    color: '#0F172A',
+    color: '#1C1917',
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 13,
     fontFamily: 'PlusJakartaSans_400Regular',
-    color: '#64748B',
+    color: '#68625D',
     marginTop: 4,
     lineHeight: 18,
   },
@@ -483,10 +478,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 18,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAE2D5',
     marginBottom: 28,
   },
   infoCol: {
@@ -495,24 +490,24 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 11,
     fontFamily: 'PlusJakartaSans_500Medium',
-    color: '#64748B',
+    color: '#8C827A',
   },
   infoValue: {
     fontSize: 16,
     fontFamily: 'PlusJakartaSans_700Bold',
-    color: '#0F172A',
+    color: '#1C1917',
     marginTop: 3,
   },
   roleTag: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#F5EFEB',
     borderRadius: 6,
   },
   roleTagText: {
     fontSize: 11,
     fontFamily: 'PlusJakartaSans_600SemiBold',
-    color: '#334155',
+    color: '#5C534A',
   },
   section: {
     marginVertical: 4,
@@ -526,22 +521,22 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontFamily: 'PlusJakartaSans_700Bold',
-    color: '#0F172A',
+    color: '#1C1917',
     marginBottom: 0,
   },
   checkUpdateIconBtn: {
     padding: 6,
     borderRadius: 6,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAE2D5',
   },
   fieldBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAE2D5',
     borderRadius: 10,
     paddingHorizontal: 14,
     height: 50,
@@ -551,7 +546,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontFamily: 'PlusJakartaSans_500Medium',
-    color: '#0F172A',
+    color: '#1C1917',
   },
   primaryBtn: {
     backgroundColor: '#00A896',
@@ -571,14 +566,14 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#EFE8DE',
     marginVertical: 28,
   },
   updateCard: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#EAE2D5',
     padding: 16,
   },
   updateCardTop: {
@@ -593,12 +588,12 @@ const styles = StyleSheet.create({
   versionLabel: {
     fontSize: 11,
     fontFamily: 'PlusJakartaSans_500Medium',
-    color: '#64748B',
+    color: '#8C827A',
   },
   versionValue: {
     fontSize: 16,
     fontFamily: 'PlusJakartaSans_700Bold',
-    color: '#0F172A',
+    color: '#1C1917',
     marginTop: 2,
   },
   statusBadge: {
@@ -609,7 +604,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   statusBadgeLatest: {
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#E6F8F3',
   },
   statusBadgeUpdate: {
     backgroundColor: '#E6FFFA',
@@ -621,7 +616,7 @@ const styles = StyleSheet.create({
     fontFamily: 'PlusJakartaSans_600SemiBold',
   },
   statusBadgeTextLatest: {
-    color: '#059669',
+    color: '#00A896',
   },
   statusBadgeTextUpdate: {
     color: '#00A896',
@@ -645,37 +640,22 @@ const styles = StyleSheet.create({
     fontFamily: 'PlusJakartaSans_700Bold',
     color: '#FFFFFF',
   },
-  upToDateBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 44,
-    borderRadius: 10,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    marginTop: 2,
-  },
-  upToDateText: {
-    fontSize: 13,
-    fontFamily: 'PlusJakartaSans_600SemiBold',
-    color: '#64748B',
-  },
+
   authorRow: {
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: '#EFE8DE',
   },
   authorText: {
     fontSize: 12,
     fontFamily: 'PlusJakartaSans_500Medium',
-    color: '#94A3B8',
+    color: '#8C827A',
   },
   authorBold: {
     fontFamily: 'PlusJakartaSans_700Bold',
-    color: '#0F172A',
+    color: '#5C534A',
   },
 });

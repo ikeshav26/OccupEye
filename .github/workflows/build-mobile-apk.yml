@@ -147,6 +147,10 @@ jobs:
             echo "Injecting persistent release.keystore into generated android project..."
             cp release.keystore android/app/debug.keystore
           fi
+          if [ -f "android/app/build.gradle" ]; then
+            echo "Enabling v1SigningEnabled and v2SigningEnabled in android/app/build.gradle..."
+            sed -i "s/keyPassword 'android'/keyPassword 'android'\n            v1SigningEnabled true\n            v2SigningEnabled true/g" android/app/build.gradle
+          fi
 
       - name: Build Android APK with Gradle
         working-directory: mobile/android

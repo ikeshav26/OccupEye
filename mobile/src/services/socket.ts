@@ -13,7 +13,7 @@ export async function getSocket(): Promise<Socket> {
     }
 
     socketInstance = io(serverUrl, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       autoConnect: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 2000,

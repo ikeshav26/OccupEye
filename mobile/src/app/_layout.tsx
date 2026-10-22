@@ -13,6 +13,7 @@ import { AuthProvider } from '../context/AuthContext';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastProvider } from '../context/ToastContext';
+import { setupNotificationChannels, registerForPushNotifications } from '../services/notifications';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -28,6 +29,8 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync().catch(() => {});
+      setupNotificationChannels().catch(() => {});
+      registerForPushNotifications().catch(() => {});
     }
   }, [fontsLoaded]);
 

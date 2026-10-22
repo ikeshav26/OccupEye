@@ -60,15 +60,21 @@ export default function LoginScreen() {
     });
   };
 
+  const scrollViewRef = React.useRef<ScrollView>(null);
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       <ScrollView
+        ref={scrollViewRef}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={true}
+        showsVerticalScrollIndicator={false}
         bounces={false}>
         <ImageBackground
           source={require('../../assets/images/task-illustration-hero.jpg')}
@@ -80,26 +86,32 @@ export default function LoginScreen() {
           <Text style={styles.cardHeading}>Login</Text>
 
           <View style={styles.inputCapsule}>
-            <Feather name="user" size={18} color="#94A3B8" style={styles.inputIcon} />
+            <Feather name="user" size={18} color="#9E968F" style={styles.inputIcon} />
             <TextInput
               style={styles.textInput}
               placeholder="Username"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor="#9E968F"
               value={username}
               onChangeText={setUsername}
+              onFocus={() => {
+                setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
+              }}
               autoCapitalize="none"
               autoCorrect={false}
             />
           </View>
 
           <View style={styles.inputCapsule}>
-            <Feather name="lock" size={18} color="#94A3B8" style={styles.inputIcon} />
+            <Feather name="lock" size={18} color="#9E968F" style={styles.inputIcon} />
             <TextInput
               style={styles.textInput}
               placeholder="Password"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor="#9E968F"
               value={password}
               onChangeText={setPassword}
+              onFocus={() => {
+                setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
+              }}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
               autoCorrect={false}
@@ -112,7 +124,7 @@ export default function LoginScreen() {
               <Feather
                 name={showPassword ? 'eye' : 'eye-off'}
                 size={18}
-                color="#94A3B8"
+                color="#9E968F"
               />
             </TouchableOpacity>
           </View>
@@ -143,7 +155,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF7F2',
   },
   scrollContent: {
     flexGrow: 1,
@@ -154,23 +166,23 @@ const styles = StyleSheet.create({
     height: SCREEN_HEIGHT * 0.58,
   },
   bottomCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF7F2',
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
     paddingHorizontal: 28,
     paddingTop: 36,
     paddingBottom: Platform.OS === 'ios' ? 56 : 46,
     marginTop: -48,
-    shadowColor: '#000',
+    shadowColor: '#1C1917',
     shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 18,
     elevation: 10,
   },
   cardHeading: {
     fontSize: 27,
     fontFamily: 'PlusJakartaSans_800ExtraBold',
-    color: '#0F172A',
+    color: '#1C1917',
     textAlign: 'center',
     letterSpacing: -0.5,
     marginBottom: 26,
@@ -178,9 +190,9 @@ const styles = StyleSheet.create({
   inputCapsule: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F5EFEB',
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: '#EAE2D5',
     borderRadius: 24,
     paddingHorizontal: 18,
     height: 56,
@@ -192,7 +204,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 15,
-    color: '#0F172A',
+    color: '#1C1917',
     fontFamily: 'PlusJakartaSans_500Medium',
   },
   eyeButton: {

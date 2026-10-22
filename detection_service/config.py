@@ -32,4 +32,4 @@ FAN_STABILIZATION_COUNT = int(os.getenv("FAN_STABILIZATION_COUNT", 2))
 
 IDLE_TIME_THRESHOLD = int(os.getenv("IDLE_TIME_THRESHOLD", 10))
 ALERT_REPEAT_INTERVAL = int(os.getenv("ALERT_REPEAT_INTERVAL", 30))
-SERVER_WEBHOOK_URL = os.getenv("SERVER_WEBHOOK_URL", "http://localhost:3000/api/alerts")
+SERVER_WEBHOOK_URL = os.getenv("SERVER_WEBHOOK_URL", "https://occupeye.onrender.com/api/alerts")
